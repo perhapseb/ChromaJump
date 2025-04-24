@@ -1,4 +1,7 @@
-html, body {
+@import url('https://fonts.cdnfonts.com/css/pixelify-sans');
+
+html,
+body {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -16,5 +19,97 @@ canvas {
   height: 100% !important;
   object-fit: cover !important;
   object-position: center center !important;
-  image-rendering: pixelated;
 }
+
+#menu {
+  position:fixed !important;
+  width: 100%;
+  height: 100%;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  flex-wrap: wrap;
+  padding-left: 15%;
+  padding-top: 5%;
+  gap: 1.5rem;
+  pointer-events: none;
+}
+
+#menu .menu-title {
+  margin: 0;
+  font-family: "Pixelify Sans", monospace;
+  font-size: 5em;
+  color: #fff;
+  text-align: center;
+}
+
+#menu .menu-subtitle {
+  margin: 0 0 1.5rem 0;
+  font-family: "Pixelify Sans", monospace;
+  font-size: 3em;
+  color: #ccc;
+  text-align: center;
+}
+
+#menu .menu-button {
+  font-family: "Pixelify Sans", monospace;
+  font-weight: normal;
+  font-size: 24px;
+  color: white;
+  background: transparent;
+  border: 0.3em solid white;
+  padding: 0.5em 1.5em;
+  width: min(60%, 12em);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+#menu .menu-button:hover,
+#menu .menu-button:focus {
+  background: white;
+  color: #333;
+}
+
+/* -----------------------------------
+   Game HUD (level number + lens icon)
+   ----------------------------------- */
+   #game-ui {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    padding: 0.5em 1em;
+    box-sizing: border-box;
+    font-family: "Pixelify Sans", monospace;
+    font-weight: normal;
+    color: white;
+    pointer-events: none;  /* clicks pass through */
+    display: inline-table;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  #level-display {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+  }
+  
+  #lens-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 30px;
+  }
+  
+  /* the little circle showing the current lens color */
+  .lens-circle {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 0px solid black;
+    box-sizing: border-box;
+  }
+  

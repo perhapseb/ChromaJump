@@ -39,9 +39,8 @@ let ambienceSound, lensSound, completeSound, thudSound, unlockSound;
 let ambienceVolume = 0;
 
 let gameState = "menu"; // "menu" or "playing"
-let levelButtons = []; // to keep track of your DOM buttons
 
-// LENS VARS
+// lens variables
 let currentLens = "white"; // Active lens (starts with red)
 let unlockedLenses = ["white"]; // All lenses unlocked
 let lensIndex = 0; // Tracks current lens index
@@ -57,13 +56,6 @@ const pickupMap = {
   g: "green",
   b: "blue",
 }; // maps the map‑character → lens color name
-
-let bgLayers = [
-  { imgFile: "Images/Parallax/L1.png", img: undefined, speed: 0.2 },
-  { imgFile: "Images/Parallax/L2.png", img: undefined, speed: 0.4 },
-  { imgFile: "Images/Parallax/L3.png", img: undefined, speed: 0.6 },
-  { imgFile: "Images/Parallax/L4.png", img: undefined, speed: 0.8 },
-];
 
 // ASSET PRELOAD AND SETUP
 
@@ -94,6 +86,8 @@ function preload() {
 const MAX_W = 1920;
 const MAX_H = 1080;
 
+let levelElem, lensElem;
+
 function setup() {
   // world setup
   const w = min(windowWidth, MAX_W);
@@ -102,9 +96,8 @@ function setup() {
   createCanvas(w, h);
 
   noSmooth();       // optional: keep pixels crisp
-  pixelDensity(1);  // optional: 1:1 canvas pixels
 
-  displayMode("centered", "pixelated");
+  displayMode("maximize", "pixelated");
 
   world.gravity.y = 10;
 
@@ -117,7 +110,7 @@ function setup() {
   player.layer = 20;
   player.rotationLock = true;
   player.addAni("walk", walkAnim, { width: 32, height: 32, frames: 5 });
-  player.addAni("jump", jumpAnim, {width: 32, height: 32, frames: 8, frameDelay: 5,});
+  player.addAni("jump", jumpAnim, { width: 32, height: 32, frames: 8, frameDelay: 5, });
   player.addAni("idle", idleAnim, {
     width: 32,
     height: 32,
@@ -139,7 +132,7 @@ function setup() {
   jumpEffect.scale = 2;
   jumpEffect.layer = 5;
   jumpEffect.rotationLock = true;
-  jumpEffect.addAni("poof", jumpDustAnim, {width: 32, height: 32, frames: 5, frameDelay: 5,});
+  jumpEffect.addAni("poof", jumpDustAnim, { width: 32, height: 32, frames: 5, frameDelay: 5, });
   jumpEffect.ani.noLoop();
   jumpEffect.opacity = 0;
 
@@ -178,17 +171,38 @@ function setup() {
 
   lensSound.setVolume(0.2);
 
-  // init first level
-
   camera.x = player.x;
   camera.y = height / 2;
 
   // VIEW HITBOXES
   allSprites.debug = false;
+  p5play.renderStats = false;
   allSprites.pixelPerfect = false;
   allSprites.autoDraw = true;
 
   frameRate(60);
+
+  menuDiv = createDiv();
+  menuDiv.id("menu");
+
+  // create a HUD container
+  let uiDiv = createDiv()
+  uiDiv.id('game-ui');
+  
+  // create & parent the level display
+  levelElem = createSpan('')
+    .id('level-display')
+    .parent(uiDiv);
+
+  // create & parent the lens display
+  lensElem = createDiv()        // using a div to hold icon + text
+    .id('lens-display')
+    .parent(uiDiv);
+
+  // init first level
+  loadLevel(currentLevelIndex);
+  resetLevel();
+  //
 
   showMenu();
 }
@@ -197,23 +211,59 @@ function draw() {
   background(30);
 
   if (gameState === "menu") {
-    drawMenu();
-    platforms.removeAll();
-    player.opacity = 0;
-    walkEffect.opacity = 0;
-    player.collider = "none";
-    mouse.visible = true;
-  } else if (gameState === "playing") {
-    player.collider = "DYNAMIC";
-    player.rotationLock = true;
-    player.opacity = 1;
 
-    drawParallax();
-    drawUI();
+    mouse.visible = true;
+
+    player.vel.x = 0
+    player.vel.y = 0
+
+    // strobe effect
+    const cols = [
+      color(255, 0, 0),   // red
+      color(0, 255, 0),   // green
+      color(0, 0, 255)  // blue
+    ];
+
+    // how many frames to spend fading from one color to the next
+    const FRAMES_PER = 300;
+
+    const CYCLE_LEN = FRAMES_PER * cols.length;
+    let cf = frameCount % CYCLE_LEN;
+    let idx = floor(cf / FRAMES_PER);
+
+    let t = map(cf % FRAMES_PER, 0, FRAMES_PER, 0, 1);
+
+    let c1 = cols[idx];
+    let c2 = cols[(idx + 1) % cols.length];
+
+    tintLayer.layer = 25
+    tintLayer.color = lerpColor(c1, c2, t);
+    //
+    ambienceVolume = lerp(ambienceVolume, 0, 0.1);
+    ambienceSound.setVolume(ambienceVolume);
+
+    menuDiv.size(width, height);
+
+    for (let plat of platforms) {
+      if (plat.colorTag === "text") {
+        plat.opacity = lerp(plat.opacity, 0, 0.1);
+        plat.textSize = lerp(plat.textSize, 20, 0.1);
+      }
+    }
+
+  } else if (gameState === "playing") {
+
+    tintLayer.layer = 5;
+    tintLayer.opacity = 0.25;
+
+    updateUI();
     drawMain();
 
     mouse.visible = false;
   }
+  
+  drawParallax();
+
 }
 
 // CORE
@@ -293,7 +343,7 @@ function drawMain() {
 
     // lastly, if its a win block give it that specific logic
     if (plat.colorTag === "win" && player.colliding(plat) && !transitionEffect.active) {
-      startTransition(plat.x, plat.y);
+      startTransition(plat.x, plat.y, false);
 
       thudSound.setVolume(1);
       thudSound.play();
@@ -380,7 +430,11 @@ function drawMain() {
       camera.zoom = lerp(camera.zoom, 3, 0.1);
       transitionEffect.progress += 30;
       if (transitionEffect.progress >= transitionEffect.maxSize) {
-        nextLevel();
+        if (transitionEffect.levelLoad == false) {
+          nextLevel();
+        } else {
+          startGame();
+        }
       }
     } else if (transitionEffect.phase === "fadeOut") {
       transitionEffect.alpha -= 1.5;
@@ -462,15 +516,11 @@ function drawMain() {
   }
 
   // --- Update Tint Layer ---
-  let prevColor = tintLayer ? tintLayer.color : color(255, 0, 0);
-  let toColor;
   let goalColor = color(currentLens);
-
-  toColor = lerpColor(prevColor, goalColor, 0.1);
 
   tintLayer.x = camera.x;
   tintLayer.y = camera.y;
-  tintLayer.color = toColor;
+  tintLayer.color = lerpColor(tintLayer.color, goalColor, 0.1);
 
   // Draw the transition white square if active.
   if (transitionEffect.active) {
@@ -488,33 +538,48 @@ function drawMain() {
   ambienceSound.setVolume(ambienceVolume);
 }
 
+let bgLayers = [
+  { imgFile: "Images/Parallax/L1.png", img: undefined, speed: 0.2 },
+  { imgFile: "Images/Parallax/L2.png", img: undefined, speed: 0.4 },
+  { imgFile: "Images/Parallax/L3.png", img: undefined, speed: 0.6 },
+  { imgFile: "Images/Parallax/L4.png", img: undefined, speed: 0.8 },
+];
+
 function drawParallax() {
   let camX = camera ? camera.x : 0;
-  let z = camera ? camera.zoom : 1;
-  let wZ = width * z;
-  let hZ = height * z;
+  let z    = camera ? camera.zoom : 1;
 
   imageMode(CENTER);
-  for (let layer of bgLayers) {
-    // compute a wrapping offset in the zoomed space
-    let o = -camX * layer.speed * z;
-    o = ((o % wZ) + wZ) % wZ;
 
-    // draw each quad so it tiles horizontally
-    image(layer.img, width / 2 + o, height / 2, wZ, hZ);
-    image(layer.img, width / 2 + o - wZ, height / 2, wZ, hZ);
+  for (let layer of bgLayers) {
+    // 1) compute the per-layer zoom factor
+    let lz = 1 + (z - 1) * layer.speed;
+    let wL = width  * lz;
+    let hL = height * lz;
+
+    // 2) horizontal parallax offset, still multiplied by speed * camera zoom
+    let o = -camX * layer.speed * z;
+    o = ((o % wL) + wL) % wL;
+
+    // 3) draw it tiled, using its own size
+    image(layer.img, width/2 + o,           height/2, wL, hL);
+    image(layer.img, width/2 + o - wL,      height/2, wL, hL);
   }
 }
 
 function keyPressed() {
-  if (
-    keyCode === ESCAPE &&
-    gameState === "playing" &&
-    !transitionEffect.active &&
-    !lensTransition.active
-  ) {
-    showMenu();
-    gameState = "menu";
+  if (keyCode === ESCAPE && !transitionEffect.active && !lensTransition.active) {
+    if (gameState === "playing") {
+      showMenu(true);
+      thudSound.setVolume(0.25);
+      thudSound.play();
+      gameState = "menu";
+    } else {
+      hideMenu()
+      thudSound.setVolume(0.25);
+      thudSound.play();
+      gameState = "playing";
+    }
   }
   if (keyCode === TAB) {
     let fs = fullscreen();
@@ -522,6 +587,7 @@ function keyPressed() {
   }
   if (keyCode === ENTER) {
     allSprites.debug = !allSprites.debug;
+    p5play.renderStats = !p5play.renderStats;
   }
 }
 
@@ -693,6 +759,8 @@ function createPlatformsFromMap(map) {
     let hintText = hints[currentLevelIndex][hintIndex] ?? "";
     let hintPos = hintPlatforms[i];
 
+    textFont('Pixelify Sans');
+
     let plat = new platforms.Sprite(hintPos.x, hintPos.y, 0.1, 0.1);
     plat.textSize = 0;
     plat.text = hintText;
@@ -777,90 +845,98 @@ function resetLevel() {
 // UI, ANIMATION, AND EFFECTS
 // --------------------------------
 
-function drawUI() {
-  push();
-  strokeWeight(5);
-  stroke(0);
-  fill(currentLens);
-  textSize(24);
-  textAlign(CENTER, TOP);
-  textFont("Courier New");
-  textStyle(BOLD);
-  text(`LEVEL ${currentLevelIndex + 1}`, width / 2, 20);
-  ellipse(width - 40, 40, 30, 30);
-  text(lensNames[currentLens], width - 138, 31);
-  pop();
+function updateUI() {
+  // update the level number
+  levelElem.html(`LEVEL ${currentLevelIndex + 1}`);
+
+  // update the lens icon + name
+  // lensNames[currentLens] is an array, so grab [0]
+  let name = lensNames[currentLens][0];
+  lensElem.html(
+    `<span class="lens-circle" style="background: ${currentLens};"></span>` +
+    `${name}`
+  );
 }
 
+
 function clearLevelButtons() {
-  for (let b of levelButtons) {
-    b.remove();
+  const container = menuDiv.elt;
+
+  // as long as there is at least one child, remove it
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
   }
-  levelButtons = [];
 }
 
 // main menu code
-function showMenu() {
-  clearLevelButtons();
+function showMenu(showResume) {
+
+  clearLevelButtons(); // clear out any old buttons
+
+  menuDiv.style("pointer-events", "auto");
+
+  // — title —
+  let title = createElement("h1", "ChromaJump");
+  title.parent(menuDiv);
+  title.class("menu-title");
+
+  if (showResume) {
+
+    // — subtitle —
+    let subtitle = createElement("p", "Paused");
+    subtitle.parent(menuDiv);
+    subtitle.class("menu-subtitle");
+
+    let b = createButton(`Resume`);
+    b.parent(menuDiv);           // put it inside our #menu div
+    b.class("menu-button");      // give it the CSS class
+    b.mousePressed(() => {
+      hideMenu()
+      gameState = "playing";
+      thudSound.setVolume(0.25);
+      thudSound.play();
+    });
+  } else {
+
+    // — subtitle —
+    let subtitle = createElement("p", "Select a level:");
+    subtitle.parent(menuDiv);
+    subtitle.class("menu-subtitle");
+
+  }
+
   for (let i = 0; i < levelMaps.length; i++) {
     let b = createButton(`LEVEL ${i + 1}`);
-
-    // kill the old .position() call:
-    // b.position(width / 2 - 75, 250 + i * 60);
-
-    // absolute‑position + CSS trick:
-    b.style("position", "absolute");
-    b.style("left", "50%");
-    b.style("transform", "translateX(-50%)");
-
-    // push them down from the top of the screen:
-    b.style("top", `${250 + i * 60}px`);
-
-    // rest of your styling…
-    b.style("font-family", "Courier New, monospace");
-    b.style("font-weight", "bold");
-    b.style("font-size", "32px");
-    b.style("background", "transparent");
-    b.style("border", "4px solid white");
-    b.style("color", "white");
-    b.style("outline", "none");
-    b.style("cursor", "pointer");
-
+    b.parent(menuDiv);           // put it inside our #menu div
+    b.class("menu-button");      // give it the CSS class
     b.mousePressed(() => {
       currentLevelIndex = i;
-
-      thudSound.setVolume(1);
+      hideMenu()
+      gameState = "playing";
+      startTransition(camera.x, camera.y, true);
+      thudSound.setVolume(0.25);
       thudSound.play();
-
       completeSound.setVolume(0.25);
       completeSound.play();
-
-      startGame();
     });
-    levelButtons.push(b);
   }
+  menuDiv.show();
+}
+
+function hideMenu() {
+
+  menuDiv.hide();
+  clearLevelButtons();
+
 }
 
 // function to load level
 function startGame() {
-  clearLevelButtons();
   loadLevel(currentLevelIndex);
   resetLevel();
-  gameState = "playing";
-}
-
-function drawMenu() {
-  push();
-  textAlign(CENTER, CENTER);
-  textSize(48);
-  textStyle(BOLD);
-  textFont("Courier New");
-  fill(255);
-  text("ChromaJump", width / 2, 100);
-  textSize(24);
-  fill(200);
-  text("Select a level:", width / 2, 150);
-  pop();
+  // transition
+  transitionEffect.phase = "fadeOut";
+  transitionEffect.alpha = 255;
 }
 
 let transitionEffect = {
@@ -871,15 +947,17 @@ let transitionEffect = {
   originWorld: { x: 0, y: 0 }, // win block position (in world coordinates)
   maxSize: 0, // maximum size needed to cover the screen
   alpha: 255, // opacity (used during fadeOut)
+  levelLoad: false
 };
 
-function startTransition(xPos, yPos) {
+function startTransition(xPos, yPos, levelLoad) {
   transitionEffect.active = true;
   transitionEffect.phase = "grow";
   transitionEffect.progress = 0;
   transitionEffect.alpha = 255;
   transitionEffect.originWorld = { x: xPos, y: yPos };
-  transitionEffect.maxSize = sqrt(sq(windowWidth) + sq(windowHeight)) * 2;
+  transitionEffect.levelLoad = levelLoad
+  transitionEffect.maxSize = 1500;
 }
 
 let lensTransition = {
