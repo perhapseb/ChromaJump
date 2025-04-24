@@ -13,7 +13,7 @@
 // --- Assets ---
 // Character spritesheet: CraftPix.net
 //   https://craftpix.net/freebies/free-pixel-art-tiny-hero-sprites/
-// Coin spritesheet: La Red Games
+// Lens spritesheet: La Red Games
 //   https://laredgames.itch.io/gems-coins-free
 // Background (Parallax): Lil Cthulhu
 //   https://lil-cthulhu.itch.io/pixel-art-cave-background
@@ -163,6 +163,7 @@ function setup() {
   transSquare = new Sprite(camera.x, camera.y, 1, 1, "none");
   transSquare.scale = 0;
   transSquare.visible = false;
+  transSquare.strokeWeight = 0
 
   // sound setup
 
@@ -197,7 +198,7 @@ function setup() {
     .parent(uiDiv);
 
   // init first level
-  loadLevel(currentLevelIndex);
+  loadLevel(99);
   resetLevel();
   //
 
@@ -206,7 +207,6 @@ function setup() {
   camera.x = player.x;
   camera.y = player.y;
 
-  
 }
 
 function draw() {
@@ -298,7 +298,7 @@ function drawMain() {
       // text hint logic
       plat.collider = "none";
       let distToPlayer = dist(player.x, player.y, plat.x, plat.y);
-      let targetOpacity = distToPlayer > 350 ? 0 : 0.75;
+      let targetOpacity = distToPlayer > 350 ? 0 : 1;
       let targetSize = distToPlayer > 350 ? 20 : 25;
       plat.opacity = lerp(plat.opacity, targetOpacity, 0.1);
       plat.textSize = lerp(plat.textSize, targetSize, 0.1);
@@ -471,8 +471,7 @@ function drawMain() {
       // Check if we need to switch phase based on direction:
       if ((lensTransition.direction === 1 && lensTransitionSprite.xOffset > width) || (lensTransition.direction === -1 && lensTransitionSprite.xOffset < -width)) {
         // Wrap the offset depending on direction.
-        lensTransitionSprite.xOffset =
-          lensTransition.direction === 1 ? -width : width;
+        lensTransitionSprite.xOffset = lensTransition.direction === 1 ? -width : width;
         lensTransition.phase = "moveIn"; // Switch phase to move inward.
 
         // Update the lens index depending on the direction of transition.
@@ -539,15 +538,15 @@ function drawMain() {
 }
 
 let bgLayers = [
-  { imgFile: "Images/Parallax/L1.png", img: undefined, speed: 0.2 },
-  { imgFile: "Images/Parallax/L2.png", img: undefined, speed: 0.4 },
-  { imgFile: "Images/Parallax/L3.png", img: undefined, speed: 0.6 },
-  { imgFile: "Images/Parallax/L4.png", img: undefined, speed: 0.8 },
+  { imgFile: "Images/Parallax/L1.png", img: undefined, speed: 0.05 },
+  { imgFile: "Images/Parallax/L2.png", img: undefined, speed: 0.1 },
+  { imgFile: "Images/Parallax/L3.png", img: undefined, speed: 0.2 },
+  { imgFile: "Images/Parallax/L4.png", img: undefined, speed: 0.4 },
 ];
 
 function drawParallax() {
-  let camX = camera ? camera.x : 0;
-  let z    = camera ? camera.zoom : 1;
+  let camX = camera.x;
+  let z = camera.zoom;
 
   imageMode(CENTER);
 
@@ -612,40 +611,65 @@ let spawnX, spawnY; // spawn pos for player
 let hints = [
   [
     "use A and D to move",
-    "press W or Space to jump",
-    "press Q or E to swap between lenses",
+  ],
+  [
+    "use A and D to move",
+  ],
+  [
+    "use A and D to move",
+  ],
+  [
+    "use A and D to move",
+  ],
+  [
+    "use A and D to move",
+  ],
+  [
+    "ChromaJump",
+    "by Sebastian C",
+    "Credits:",
+    "Original Character Spritesheet\nCraftPix.net",
+    "Lens Spritesheet\nLa Red Games",
+    "Cave Background\nLil Cthulhu",
+    "Music\nLunga by Elm Lake",
+    "SFX\nEpidemic Sound",
+    "Thank you for playing! 💖",
   ],
 ];
 
 let levelMaps = [
   [
-    "......................................N.....N...............R..................NN",
-    ".......................................N...N................R..................NN",
-    ".............T..............T...........NNN.................R..................NN",
-    ".........................................R............C.....R............C.....NN",
-    "........................r.C..............R........NNNNNNNN..R.......NNNNNNNNN..NN",
-    "...................NNNNNNNNNNN...........R..................R......NNNN.....N..NN",
-    ".T...................NNNNNNN....RRRR...NNNNN.RRRR...........R.NNNNNNNN......N..NN",
-    "..............NNN.....NNNNN.............NNN.................R..N....NN......N..NN",
-    ".S....................NNNNN..............N..................R...N...NN......NWWNN",
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNN..............N..................R....NNNNNNNNNNNNNNNN",
+    "......................................N.....N..............RR..................NN",
+    ".......................................N...N...............RR..................NN",
+    ".............T..............T...........NNN................RR..................NN",
+    ".........................................R............C....RR..................NN",
+    "........................r.C..............R........NNNNNNNN.RR.......NNNNNNNNN..NN",
+    "...................NNNNNNNNNNN...........R.................RR......NNNN.....N..NN",
+    ".T...................NNNNNNN....RRRR...NNNNN.RRRR..........RR.NNNNNNNN......N..NN",
+    "..............NNN.....NNNNN.............NNN................RR..N....NN......N..NN",
+    ".S....................NNNNN..............N.................RR...N...NN......NWWNN",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNN..............N.................RR....NNNNNNNNNNNNNNNN",
   ],
   [
-    ",,,,,N............................................NNNNNNNNNNN....N",
-    ",,,,,N............................................NGRGRGRGRGN....N",
-    ",,,,,N............................................NRGRGRGRGRN....N",
-    ",,,,,N............................................NNNNNNNNNNN....N",
-    ",,,,,N.............................................R...G...R.....N",
-    ",,,,,N.................gC..........................R...G...R.....N",
-    ",,,,,N...............NNNNNNN.......................R...G...R.....N",
-    ",,,,,NRRRRRRRNNNN...........NNN....................R.C.G...R.....N",
-    ",,,,,N....,NNNNN...............NNN..GGGGG..RRRRR..NNNNNNNNNNNGGGGG",
-    ",,,,,N....,NNNN........................................NW........G",
-    ",,,,,N...NNNNN.........................................NW........G",
-    "NNNNNN...NNNNN.........................................NW........G",
-    "......RRR....N.........................................NNNNGGGGGGG",
-    ".Sr..........N....................................................",
-    "NNNNNNNNNNNNNN.....................................................",
+    "N..N..N",
+    "N..N..N",
+    "N..N..N",
+    "N..N..N",
+    "N..N..N............................................NNNNNNNNNNN....N",
+    "N..N..N............................................NGRGRGRGRGN....N",
+    "N..N..N............................................NRGRGRGRGRN....N",
+    "N..N..N............................................NNNNNNNNNNN....N",
+    "N..N..N.............................................R...G...R.....N",
+    "N..N..N.................g...........................R...G...R.....N",
+    "N..N..NRRRRRRRRNNN...RRRRRRRR.......................R...G...R.....N",
+    "N..N..NRRRRRRRRNNN...RRRRRRRRRRR.C..................R.C.G...R.....N",
+    "N..N..N.....NNNNN............RRRNNN..GGGGG..RRRRR..NNNNNNNNNNNGGGGG",
+    "N..N..N.....NNNN................NNN..GGGGG..RRRRR...NNNNNN........G",
+    "N..N..N...NNNNN......................................NNNNN........G",
+    "N..NNNN...NNNNN.......................................NNNW........G",
+    "N.....RRRRR...N.......................................NNNW........G",
+    "NSr...........N.......................................NNNW........G",
+    "NNNNNNNNNNNNNNN.......................................NNNNNGGGGGGGG",
   ],
   [
     "..........................................................................W",
@@ -656,33 +680,57 @@ let levelMaps = [
     "....................GGGG..........NNNNNN...................................",
     "................................................GGGGGGGG...................",
     ".............RRRR..........................................................",
-    "...S..r.g.b................................................................",
+    "...Srgb....................................................................",
     "NNNNNNNNNNNNNNN............................................................",
   ],
   [
-    "...S........",
+    "...Srgb.....",
     "NNNNNNNNNNNN",
   ],
   [
-    "...S........",
+    "...Srgb....W",
     "NNNNNNNNNNNN",
   ],
   [
-    "...S........",
-    "NNNNNNNNNNNN",
-  ],
-  [
-    "...S........",
-    "NNNNNNNNNNNN",
-  ],
-  [
-    "...S........",
-    "NNNNNNNNNNNN",
+    ".........N......................N...................................",
+    "........NWN....................NWN.......................N.N........",
+    ".........N......................N.......................NNNNN.......",
+    ".........................................................NNN........",
+    "....T..........T..........................................N.........",
+    "........T...........................................................",
+    "...................T.......T......T......T.......T........T.........",
+    "...Srgb.............................................................",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+    "NRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBN",
+    "NBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGN",
+    "NGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRGBRN",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
   ]
 ];
 
+let mainMenuMap =  [
+  "................................N......",
+  "...............................NWN.....",
+  "................................N......",
+  ".......................................",
+  "....N..................................",
+  "...NWN.............S...................",
+  "....N..............N...................",
+  "...................N...................",
+  "...................N...................",
+  "W..................N..................W",
+  "NN...............NNNNN...............NN",
+  "NNN......NNN.......N......NNN.......NNN",
+  "NNNN......N........N.......N.......NNNN",
+  "NNNNN.....N........N.......N......NNNNN",
+  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+  "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
+]
+
 // Create platforms from a grid-based level map.
 function createPlatformsFromMap(map) {
+
   let yOffset = height - map.length * tileSize - 50; // vertical offset
   let xOffset = 0; // horizontal offset if needed
 
@@ -784,7 +832,6 @@ function createPlatformsFromMap(map) {
     let plat = new platforms.Sprite(hintPos.x, hintPos.y, 0.1, 0.1);
     plat.textSize = 0;
     plat.text = hintText;
-    plat.font = "Courier New";
     plat.opacity = 0;
     plat.textColor = "white";
     plat.textStroke = 0;
@@ -830,8 +877,14 @@ function createPlatform(x, y, w, h, colorTag) {
 // load level given index
 function loadLevel(index) {
   hintIndex = 0;
+  let mapToLoad
+  if (index == 99) {
+    mapToLoad = mainMenuMap
+  } else {
+    mapToLoad = levelMaps[index]
+  }
   platforms.removeAll();
-  createPlatformsFromMap(levelMaps[index]);
+  createPlatformsFromMap(mapToLoad);
   resetLevel();
 }
 
@@ -944,10 +997,8 @@ function showMenu(showResume) {
 }
 
 function hideMenu() {
-
   menuDiv.hide();
   clearLevelButtons();
-
 }
 
 // function to load level
