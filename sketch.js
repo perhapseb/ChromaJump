@@ -545,7 +545,7 @@ let spawnX, spawnY; // spawn pos for player
 // per level hints
 let hints = [
   [
-    "use A and D to move",
+    "hey is this pushing? use A and D to move",
     "press W or Space to jump",
     "press Q or E to swap between lenses",
   ],
