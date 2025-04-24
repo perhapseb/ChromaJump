@@ -1,10 +1,11 @@
+//
 //   ██████╗██╗  ██╗██████╗  ██████╗ ███╗   ███╗ █████╗      ██╗██╗   ██╗███╗   ███╗██████╗
 //  ██╔════╝██║  ██║██╔══██╗██╔═══██╗████╗ ████║██╔══██╗     ██║██║   ██║████╗ ████║██╔══██╗
 //  ██║     ███████║██████╔╝██║   ██║██╔████╔██║███████║     ██║██║   ██║██╔████╔██║██████╔╝
 //  ██║     ██╔══██║██╔══██╗██║   ██║██║╚██╔╝██║██╔══██║██   ██║██║   ██║██║╚██╔╝██║██╔═══╝
 //  ╚██████╗██║  ██║██║  ██║╚██████╔╝██║ ╚═╝ ██║██║  ██║╚█████╔╝╚██████╔╝██║ ╚═╝ ██║██║
 //   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝ ╚════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝
-
+//
 // === Game Credits ===
 // Created by Sebastian C
 // Built with p5.play and p5.js
@@ -90,9 +91,18 @@ function preload() {
   }
 }
 
+const MAX_W = 1920;
+const MAX_H = 1080;
+
 function setup() {
   // world setup
-  createCanvas(1920, 1080);
+  const w = min(windowWidth, MAX_W);
+  const h = min(windowHeight, MAX_H);
+
+  createCanvas(w, h);
+
+  noSmooth();       // optional: keep pixels crisp
+  pixelDensity(1);  // optional: 1:1 canvas pixels
 
   displayMode("centered", "pixelated");
 
@@ -107,12 +117,7 @@ function setup() {
   player.layer = 20;
   player.rotationLock = true;
   player.addAni("walk", walkAnim, { width: 32, height: 32, frames: 5 });
-  player.addAni("jump", jumpAnim, {
-    width: 32,
-    height: 32,
-    frames: 8,
-    frameDelay: 5,
-  });
+  player.addAni("jump", jumpAnim, {width: 32, height: 32, frames: 8, frameDelay: 5,});
   player.addAni("idle", idleAnim, {
     width: 32,
     height: 32,
@@ -134,12 +139,7 @@ function setup() {
   jumpEffect.scale = 2;
   jumpEffect.layer = 5;
   jumpEffect.rotationLock = true;
-  jumpEffect.addAni("poof", jumpDustAnim, {
-    width: 32,
-    height: 32,
-    frames: 5,
-    frameDelay: 5,
-  });
+  jumpEffect.addAni("poof", jumpDustAnim, {width: 32, height: 32, frames: 5, frameDelay: 5,});
   jumpEffect.ani.noLoop();
   jumpEffect.opacity = 0;
 
@@ -153,25 +153,13 @@ function setup() {
   walkEffect.addAni("dust", walkDustAnim, { width: 32, height: 32, frames: 6 });
 
   // cam effects setup
-  tintLayer = new Sprite(
-    camera.x,
-    camera.y,
-    windowWidth * 6,
-    windowHeight * 6,
-    "none"
-  );
+  tintLayer = new Sprite(camera.x, camera.y, windowWidth * 6, windowHeight * 6, "none");
 
   tintLayer.layer = 5;
   tintLayer.opacity = 0.25;
   tintLayer.color = color("red");
 
-  lensTransitionSprite = new Sprite(
-    camera.x,
-    camera.y,
-    lensImg.width,
-    lensImg.height,
-    "none"
-  );
+  lensTransitionSprite = new Sprite(camera.x, camera.y, lensImg.width, lensImg.height, "none");
 
   lensTransitionSprite.image = lensImg;
   lensTransitionSprite.layer = 20; // Draw on top.
@@ -297,23 +285,14 @@ function drawMain() {
       let platTop = plat.y - plat.height / 2;
       let platBottom = plat.y + plat.height / 2;
 
-      if (
-        player.x > platLeft &&
-        player.x < platRight &&
-        player.y > platTop &&
-        player.y < platBottom
-      ) {
+      if (player.x > platLeft && player.x < platRight && player.y > platTop && player.y < platBottom) {
         resetLevel();
         break;
       }
     }
 
     // lastly, if its a win block give it that specific logic
-    if (
-      plat.colorTag === "win" &&
-      player.colliding(plat) &&
-      !transitionEffect.active
-    ) {
+    if (plat.colorTag === "win" && player.colliding(plat) && !transitionEffect.active) {
       startTransition(plat.x, plat.y);
 
       thudSound.setVolume(1);
@@ -351,11 +330,7 @@ function drawMain() {
       player.changeAni("idle");
     }
 
-    if (
-      (kb.pressing("space") || kb.pressing("up")) &&
-      isOnTopOfPlatform &&
-      player.vel.y >= 0
-    ) {
+    if ((kb.pressing("space") || kb.pressing("up")) && isOnTopOfPlatform && player.vel.y >= 0) {
       player.vel.y = -7;
       jumpEffect.x = player.x;
       jumpEffect.y = player.y - 15;
@@ -382,12 +357,7 @@ function drawMain() {
   }
 
   // --- Lens Switching & Transition Trigger ---
-  if (
-    (kb.pressing("q") || kb.pressing("e")) &&
-    !lensTransition.active &&
-    unlockedLenses.length > 1
-  ) {
-    // Trigger lens transition effect.
+  if ((kb.pressing("q") || kb.pressing("e")) && !lensTransition.active && unlockedLenses.length > 1) {
 
     if (kb.pressing("q")) {
       lensTransition.direction = -1;
@@ -443,12 +413,7 @@ function drawMain() {
       lensTransitionSprite.x = camera.x + lensTransitionSprite.xOffset;
 
       // Check if we need to switch phase based on direction:
-      if (
-        (lensTransition.direction === 1 &&
-          lensTransitionSprite.xOffset > width) ||
-        (lensTransition.direction === -1 &&
-          lensTransitionSprite.xOffset < -width)
-      ) {
+      if ((lensTransition.direction === 1 && lensTransitionSprite.xOffset > width) || (lensTransition.direction === -1 && lensTransitionSprite.xOffset < -width)) {
         // Wrap the offset depending on direction.
         lensTransitionSprite.xOffset =
           lensTransition.direction === 1 ? -width : width;
@@ -466,10 +431,7 @@ function drawMain() {
       lensTransitionSprite.x = camera.x + lensTransitionSprite.xOffset;
 
       // When the offset is centered, we transition to zoom out.
-      if (
-        (lensTransition.direction === 1 && lensTransitionSprite.xOffset >= 0) ||
-        (lensTransition.direction === -1 && lensTransitionSprite.xOffset <= 0)
-      ) {
+      if ((lensTransition.direction === 1 && lensTransitionSprite.xOffset >= 0) || (lensTransition.direction === -1 && lensTransitionSprite.xOffset <= 0)) {
         lensTransitionSprite.xOffset = 0; // Reset offset
         lensTransition.phase = "zoomOut"; // Transition to zoom out.
       }
@@ -542,7 +504,6 @@ function drawParallax() {
     image(layer.img, width / 2 + o, height / 2, wZ, hZ);
     image(layer.img, width / 2 + o - wZ, height / 2, wZ, hZ);
   }
-  imageMode(CORNER);
 }
 
 function keyPressed() {
@@ -562,6 +523,12 @@ function keyPressed() {
   if (keyCode === ENTER) {
     allSprites.debug = !allSprites.debug;
   }
+}
+
+function windowResized() {
+  const w = min(windowWidth, MAX_W);
+  const h = min(windowHeight, MAX_H);
+  resizeCanvas(w, h);
 }
 
 // --------------------------------
