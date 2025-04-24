@@ -5,7 +5,7 @@
 //  ██║     ██╔══██║██╔══██╗██║   ██║██║╚██╔╝██║██╔══██║██   ██║██║   ██║██║╚██╔╝██║██╔═══╝
 //  ╚██████╗██║  ██║██║  ██║╚██████╔╝██║ ╚═╝ ██║██║  ██║╚█████╔╝╚██████╔╝██║ ╚═╝ ██║██║
 //   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝ ╚════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝
-//
+
 // === Game Credits ===
 // Created by Sebastian C
 // Built with p5.play and p5.js
@@ -38,8 +38,6 @@ let lensImg,
 let ambienceSound, lensSound, completeSound, thudSound, unlockSound;
 let ambienceVolume = 0;
 
-let gameState = "menu"; // "menu" or "playing"
-
 // lens variables
 let currentLens = "white"; // Active lens (starts with red)
 let unlockedLenses = ["white"]; // All lenses unlocked
@@ -52,7 +50,8 @@ let lensNames = {
   ["blue"]: ["Blue"],
 };
 
-// ASSET PRELOAD AND SETUP
+// asset preload and setup
+let gameState = "menu"; // "menu" or "playing"
 
 function preload() {
   // main sprites
@@ -72,7 +71,7 @@ function preload() {
   completeSound = loadSound("Sounds/LevelComplete.mp3");
   thudSound = loadSound("Sounds/Thud.mp3");
   unlockSound = loadSound("Sounds/LensUnlock.mp3");
-  // Parallax
+  // parallax
   for (let layer of bgLayers) {
     layer.img = loadImage(layer.imgFile);
   }
@@ -84,19 +83,18 @@ const MAX_H = 1080;
 let levelElem, lensElem;
 
 function setup() {
+
   // world setup
+  platforms = new Group();
+  world.gravity.y = 10;
+
+  // canvas setup
   const w = min(windowWidth, MAX_W);
   const h = min(windowHeight, MAX_H);
 
   createCanvas(w, h);
-
-  noSmooth();       // optional: keep pixels crisp
-
+  noSmooth();
   displayMode("maximize", "pixelated");
-
-  world.gravity.y = 10;
-
-  platforms = new Group();
 
   // player setup
   player = new Sprite(50, height - 28, 28, 28);
@@ -114,6 +112,7 @@ function setup() {
   });
   player.friction = 0;
 
+  // spawn pos setup
   spawnX = 50;
   spawnY = height - 100;
 
@@ -214,15 +213,14 @@ function draw() {
     player.vel.x = 0
     player.vel.y = 0
 
-    // strobe effect
+    // main menu strobe effect
     const cols = [
       color(255, 0, 0),   // red
       color(0, 255, 0),   // green
       color(0, 0, 255)  // blue
     ];
 
-    // how many frames to spend fading from one color to the next
-    const FRAMES_PER = 300;
+    const FRAMES_PER = 300; // how many frames to spend fading from one color to the next
 
     const CYCLE_LEN = FRAMES_PER * cols.length;
     let cf = frameCount % CYCLE_LEN;
@@ -313,7 +311,7 @@ function drawMain() {
       }
     } else if (plat.colorTag === "checkpoint") {
       if (player.overlapping(plat)) {
-        // checkpoint logic
+        // checkpoint logic, change spawn
         spawnX = plat.x;
         spawnY = plat.y;
         plat.remove();
@@ -419,7 +417,7 @@ function drawMain() {
     lensTransition.pos = { x: width / 2, y: height / 2 };
     lensTransition.scale = 0.5;
     lensTransition.alpha = 255;
-    lensTransitionSprite.visible = true; // Show the transition sprite.
+    lensTransitionSprite.visible = true;
   }
 
   if (transitionEffect.active) {
@@ -546,7 +544,7 @@ function drawParallax() {
   imageMode(CENTER);
 
   for (let layer of bgLayers) {
-    // 1) compute the per-layer zoom factor
+    // compute each layer's zoom factor
     let lz = 1 + (z - 1) * layer.speed;
     let wL = width  * lz;
     let hL = height * lz;
@@ -561,25 +559,26 @@ function drawParallax() {
   }
 }
 
+// key press logic
 function keyPressed() {
-  if (keyCode === ESCAPE && !transitionEffect.active && !lensTransition.active) {
-    if (gameState === "playing") {
+  if (keyCode === ESCAPE && !transitionEffect.active && !lensTransition.active) { // main menu
+    if (gameState === "playing") { // toggle main menu
       showMenu(true);
       thudSound.setVolume(0.25);
       thudSound.play();
       gameState = "menu";
-    } else {
+    } else { // exit main menu
       hideMenu()
       thudSound.setVolume(0.25);
       thudSound.play();
       gameState = "playing";
     }
   }
-  if (keyCode === TAB) {
+  if (keyCode === TAB) { // full screen mode
     let fs = fullscreen();
     fullscreen(!fs);
   }
-  if (keyCode === ENTER) {
+  if (keyCode === ENTER) { // debug mode
     allSprites.debug = !allSprites.debug;
     p5play.renderStats = !p5play.renderStats;
   }
@@ -602,7 +601,7 @@ let hintIndex = 0; // keeps track of what hint to show next
 
 let spawnX, spawnY; // spawn pos for player
 
-// per level hints
+// per level hints, in order from left to right
 let hints = [
   [
     "use A and D to move",
@@ -610,13 +609,13 @@ let hints = [
     "Q / E to cycle lenses",
   ],
   [
-    "use A and D to move",
+    "hint text here",
   ],
   [
-    "use A and D to move",
+    "hint text here",
   ],
   [
-    "use A and D to move",
+    "hint text here",
   ],
   [
     "you did it!",
@@ -634,11 +633,12 @@ let hints = [
   ],
 ];
 
+// all level maps
 let levelMaps = [
   [
     "......................................N.....N..............RR..................NN",
     ".......................................N...N...............RR..................NN",
-    ".............T..............T...........NNN................RR..................NN",
+    ".............T..............T...........NNN................RR.............T....NN",
     ".........................................R............C....RR..................NN",
     "........................r.C..............R........NNNNNNNN.RR.......NNNNNNNNN..NN",
     "...................NNNNNNNNNNN...........R.................RR......NNNN.....N..NN",
@@ -962,13 +962,12 @@ function updateUI() {
 function clearLevelButtons() {
   const container = menuDiv.elt;
 
-  // as long as there is at least one child, remove it
-  while (container.firstChild) {
+  while (container.firstChild) { // as long as there is at least one child, remove it
     container.removeChild(container.firstChild);
   }
 }
 
-// main menu code
+// main menu code, using html and css
 function showMenu(showResume) {
 
   clearLevelButtons(); // clear out any old buttons
@@ -981,15 +980,14 @@ function showMenu(showResume) {
   title.class("menu-title");
 
   if (showResume) {
-
     // — subtitle —
     let subtitle = createElement("p", "Paused");
     subtitle.parent(menuDiv);
     subtitle.class("menu-subtitle");
 
     let b = createButton(`Resume`);
-    b.parent(menuDiv);           // put it inside our #menu div
-    b.class("menu-button");      // give it the CSS class
+    b.parent(menuDiv); 
+    b.class("menu-button");
     b.mousePressed(() => {
       hideMenu()
       gameState = "playing";
@@ -997,18 +995,16 @@ function showMenu(showResume) {
       thudSound.play();
     });
   } else {
-
     // — subtitle —
     let subtitle = createElement("p", "Select a level:");
     subtitle.parent(menuDiv);
     subtitle.class("menu-subtitle");
-
   }
 
   for (let i = 0; i < levelMaps.length; i++) {
     let b = createButton(`LEVEL ${i + 1}`);
-    b.parent(menuDiv);           // put it inside our #menu div
-    b.class("menu-button");      // give it the CSS class
+    b.parent(menuDiv);
+    b.class("menu-button");
     b.mousePressed(() => {
       currentLevelIndex = i;
       hideMenu()
@@ -1037,8 +1033,8 @@ function startGame() {
   transitionEffect.alpha = 255;
 }
 
+// Transition effect for level win.
 let transitionEffect = {
-  // Transition effect for level win.
   active: false,
   phase: "", // "grow" or "fadeOut"
   progress: 0, // current size of the square
@@ -1048,6 +1044,17 @@ let transitionEffect = {
   levelLoad: false
 };
 
+  // Lens transition effect for lens cycling.
+let lensTransition = {
+  active: false,
+  phase: "", // "zoomIn", "moveRight", "moveLeft", "zoomOut"
+  pos: { x: 0, y: 0 }, // current screen position
+  scale: 1, // current scale factor (multiplier)
+  alpha: 255, // current opacity (0-255)
+  direction: 0,
+};
+
+// effect controller for white transition
 function startTransition(xPos, yPos, levelLoad) {
   transitionEffect.active = true;
   transitionEffect.phase = "grow";
@@ -1057,13 +1064,3 @@ function startTransition(xPos, yPos, levelLoad) {
   transitionEffect.levelLoad = levelLoad
   transitionEffect.maxSize = 1500;
 }
-
-let lensTransition = {
-  // Lens transition effect for lens cycling.
-  active: false,
-  phase: "", // "zoomIn", "moveRight", "moveLeft", "zoomOut"
-  pos: { x: 0, y: 0 }, // current screen position
-  scale: 1, // current scale factor (multiplier)
-  alpha: 255, // current opacity (0-255)
-  direction: 0,
-};
