@@ -25,7 +25,7 @@
 let player, groundSensor, ground, platforms, jumpEffect, walkEffect;
 let redLens, blueLens, greenLens;
 
-// test was this pushed? HELLO
+// okay last test, HI
 
 // effects
 let lensImg,
