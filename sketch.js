@@ -51,11 +51,6 @@ let lensNames = {
   ["green"]: ["Green"],
   ["blue"]: ["Blue"],
 };
-const pickupMap = {
-  r: "red",
-  g: "green",
-  b: "blue",
-}; // maps the map‑character → lens color name
 
 // ASSET PRELOAD AND SETUP
 
@@ -146,7 +141,7 @@ function setup() {
   walkEffect.addAni("dust", walkDustAnim, { width: 32, height: 32, frames: 6 });
 
   // cam effects setup
-  tintLayer = new Sprite(camera.x, camera.y, windowWidth * 6, windowHeight * 6, "none");
+  tintLayer = new Sprite(camera.x, camera.y, 2200, 1300, "none");
 
   tintLayer.layer = 5;
   tintLayer.opacity = 0.25;
@@ -429,7 +424,7 @@ function drawMain() {
 
   if (transitionEffect.active) {
     if (transitionEffect.phase === "grow") {
-      camera.zoom = lerp(camera.zoom, 3, 0.1);
+      camera.zoom = lerp(camera.zoom, 3, 0.05);
       transitionEffect.progress += 30;
       if (transitionEffect.progress >= transitionEffect.maxSize) {
         if (transitionEffect.levelLoad == false) {
@@ -611,6 +606,8 @@ let spawnX, spawnY; // spawn pos for player
 let hints = [
   [
     "use A and D to move",
+    "W / SPACE to jump",
+    "Q / E to cycle lenses",
   ],
   [
     "use A and D to move",
@@ -648,7 +645,12 @@ let levelMaps = [
     ".T...................NNNNNNN....RRRR...NNNNN.RRRR..........RR.NNNNNNNN......N..NN",
     "..............NNN.....NNNNN.............NNN................RR..N....NN......N..NN",
     ".S....................NNNNN..............N.................RR...N...NN......NWWNN",
-    "NNNNNNNNNNNNNNNNNNNNNNNNNNN..............N.................RR....NNNNNNNNNNNNNNNN",
+    "NNNNNNNNNNNNNNNNNNNNNNNNNNN..............N.................RR....NNNNN......NNNNN",
+    ".................................................................NNNNN......NNNNN",
+    ".................................................................NNNNN......NNNNN",
+    ".................................................................NNNNN......NNNNN",
+    ".................................................................NNNNN......NNNNN",
+    ".................................................................NNNNN......NNNNN",
   ],
   [
     "N..N..N",
@@ -693,10 +695,10 @@ let levelMaps = [
   ],
   [
     ".........N......................N...................................",
-    "........NWN....................NWN.......................N.N........",
-    ".........N......................N.......................NNNNN.......",
-    ".........................................................NNN........",
-    "....T..........T..........................................N.........",
+    "........NWN....................NWN.......................R.R........",
+    ".........N......................N.......................RRRRR.......",
+    ".........................................................RRR........",
+    "....T..........T..........................................R.........",
     "........T...........................................................",
     "...................T.......T......T......T.......T........T.........",
     "...Srgb.............................................................",
@@ -727,6 +729,12 @@ let mainMenuMap =  [
   "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
   "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN",
 ]
+
+const pickupMap = {
+  r: "red",
+  g: "green",
+  b: "blue",
+}; // maps the map‑character → lens color name
 
 // Create platforms from a grid-based level map.
 function createPlatformsFromMap(map) {
@@ -903,9 +911,6 @@ function nextLevel() {
 function resetLevel() {
   player.x = spawnX;
   player.y = spawnY;
-
-  lensIndex = 0;
-  currentLens = "white";
 
   player.vel.x = 0;
   player.vel.y = 0;
