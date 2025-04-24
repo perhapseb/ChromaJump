@@ -474,9 +474,7 @@ function drawMain() {
         lensTransition.phase = "moveIn"; // Switch phase to move inward.
 
         // Update the lens index depending on the direction of transition.
-        lensIndex =
-          (lensIndex + lensTransition.direction + unlockedLenses.length) %
-          unlockedLenses.length;
+        lensIndex = (lensIndex + lensTransition.direction + unlockedLenses.length) % unlockedLenses.length;
         currentLens = unlockedLenses[lensIndex];
       }
     } else if (lensTransition.phase === "moveIn") {
@@ -659,6 +657,26 @@ let levelMaps = [
     "...S..r.g.b................................................................",
     "NNNNNNNNNNNNNNN............................................................",
   ],
+  [
+    "...S........",
+    "NNNNNNNNNNNN",
+  ],
+  [
+    "...S........",
+    "NNNNNNNNNNNN",
+  ],
+  [
+    "...S........",
+    "NNNNNNNNNNNN",
+  ],
+  [
+    "...S........",
+    "NNNNNNNNNNNN",
+  ],
+  [
+    "...S........",
+    "NNNNNNNNNNNN",
+  ]
 ];
 
 // Create platforms from a grid-based level map.
