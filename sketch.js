@@ -171,9 +171,6 @@ function setup() {
 
   lensSound.setVolume(0.2);
 
-  camera.x = player.x;
-  camera.y = height / 2;
-
   // VIEW HITBOXES
   allSprites.debug = false;
   p5play.renderStats = false;
@@ -205,6 +202,11 @@ function setup() {
   //
 
   showMenu();
+  
+  camera.x = player.x;
+  camera.y = player.y;
+
+  
 }
 
 function draw() {
