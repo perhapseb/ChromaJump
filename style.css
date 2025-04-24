@@ -22,7 +22,7 @@ canvas {
 }
 
 #menu {
-  position:fixed !important;
+  position: fixed !important;
   width: 100%;
   height: 100%;
   inset: 0 !important;
@@ -75,41 +75,37 @@ canvas {
   color: #333;
 }
 
-/* -----------------------------------
-   Game HUD (level number + lens icon)
-   ----------------------------------- */
-   #game-ui {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%;
-    padding: 0.5em 1em;
-    box-sizing: border-box;
-    font-family: "Pixelify Sans", monospace;
-    font-weight: normal;
-    color: white;
-    pointer-events: none;  /* clicks pass through */
-    display: inline-table;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  #level-display {
-    font-size: 45px;
-  }
-  
-  #lens-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 30px;
-  }
-  
-  /* the little circle showing the current lens color */
-  .lens-circle {
-    width: 1em;
-    height: 1em;
-    border-radius: 50%;
-    border: 0px solid black;
-    box-sizing: border-box;
-  }
-  
+#game-ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.5em 1em;
+  box-sizing: border-box;
+  font-family: "Pixelify Sans", monospace;
+  font-weight: normal;
+  color: white;
+  pointer-events: none;
+  display: inline-table;
+  justify-content: center;
+  align-items: center;
+}
+
+#level-display {
+  font-size: 45px;
+}
+
+#lens-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 30px;
+}
+
+.lens-circle {
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  border: 0px solid black;
+  box-sizing: border-box;
+}
