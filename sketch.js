@@ -8,7 +8,7 @@
 
 // === Game Credits ===
 // Created by Sebastian C
-// Built with p5.play and p5.js
+// Built with p5.play and q5.js
 
 // --- Assets ---
 // Character spritesheet: CraftPix.net
@@ -84,7 +84,7 @@ const MAX_H = 1080;
 let levelElem, lensElem;
 
 function setup() {
-
+  
   // world setup
   platforms = new Group();
   world.gravity.y = 10;
@@ -152,7 +152,7 @@ function setup() {
   lensTransitionSprite.image = lensImg;
   lensTransitionSprite.layer = 20; // Draw on top.
   lensTransitionSprite.visible = false; // Hidden until triggered.
-  lensTransitionSprite.scale = 100;
+  lensTransitionSprite.scale = 200;
   lensTransitionSprite.x = windowWidth / 8;
 
   transSquare = new Sprite(camera.x, camera.y, 1, 1, "none");
@@ -175,27 +175,29 @@ function setup() {
 
   frameRate(60);
 
-  menuDiv = createDiv();
-  menuDiv.id("menu");
+  // Create the menu container
+  menuDiv = document.createElement('div');
+  menuDiv.id = 'menu';
+  document.body.appendChild(menuDiv);
 
-  // create a HUD container
-  let uiDiv = createDiv()
-  uiDiv.id('game-ui');
-  
-  // create & parent the level display
-  levelElem = createSpan('')
-    .id('level-display')
-    .parent(uiDiv);
+  // Create a HUD container inside the menu
+  let uiDiv = document.createElement('div');
+  uiDiv.id = 'game-ui';
+  menuDiv.appendChild(uiDiv);
 
-  // create & parent the lens display
-  lensElem = createDiv()        // using a div to hold icon + text
-    .id('lens-display')
-    .parent(uiDiv);
+  // Create & append the level display
+  levelElem = document.createElement('span');
+  levelElem.id = 'level-display';
+  uiDiv.appendChild(levelElem);
+
+  // Create & append the lens display
+  lensElem = document.createElement('div');
+  lensElem.id = 'lens-display';
+  uiDiv.appendChild(lensElem);
 
   // init first level
   loadLevel(99);
   resetLevel();
-  //
 
   showMenu();
   
@@ -234,11 +236,12 @@ function draw() {
 
     tintLayer.layer = 25
     tintLayer.color = lerpColor(c1, c2, t);
-    //
+
     ambienceVolume = lerp(ambienceVolume, 0, 0.1);
     ambienceSound.setVolume(ambienceVolume);
 
-    menuDiv.size(width, height);
+    menuDiv.style.width  = `${width}px`;
+    menuDiv.style.height = `${height}px`;
 
     for (let plat of platforms) {
       if (plat.colorTag === "text") {
@@ -416,7 +419,7 @@ function drawMain() {
     lensTransition.active = true;
     lensTransition.phase = "zoomIn";
     lensTransition.pos = { x: width / 2, y: height / 2 };
-    lensTransition.scale = 0.5;
+    lensTransition.scale = 1;
     lensTransition.alpha = 255;
     lensTransitionSprite.visible = true;
   }
@@ -452,9 +455,9 @@ function drawMain() {
     if (lensTransition.phase === "zoomIn") {
       // Decrease scale to zoom in.
       lensTransitionSprite.xOffset = 0;
-      lensTransitionSprite.scale -= 5;
+      lensTransitionSprite.scale -= 10;
       lensTransitionSprite.x = camera.x;
-      if (lensTransitionSprite.scale <= 50) {
+      if (lensTransitionSprite.scale <= 100) {
         lensTransition.phase = "moveOut"; // Initialize xOffset for the move phase.
       }
     } else if (lensTransition.phase === "moveOut") {
@@ -484,8 +487,8 @@ function drawMain() {
       }
     } else if (lensTransition.phase === "zoomOut") {
       // Increase scale to zoom out.
-      lensTransitionSprite.scale += 5;
-      if (lensTransitionSprite.scale >= 100) {
+      lensTransitionSprite.scale += 10;
+      if (lensTransitionSprite.scale >= 200) {
         lensTransition.active = false;
         lensTransitionSprite.visible = false;
       }
@@ -956,80 +959,83 @@ function resetLevel() {
 
 function updateUI() {
   // update the level number
-  levelElem.html(`LEVEL ${currentLevelIndex + 1}`);
+  levelElem.textContent = `LEVEL ${currentLevelIndex + 1}`;
 
-  // update the lens icon + name
-  // lensNames[currentLens] is an array, so grab [0]
+  // update the lens icon + name (needs HTML, so use innerHTML)
   let name = lensNames[currentLens][0];
-  lensElem.html(
+  lensElem.innerHTML = 
     `<span class="lens-circle" style="background: ${currentLens};"></span>` +
-    `${name}`
-  );
+    name;
 }
 
-
 function clearLevelButtons() {
-  const container = menuDiv.elt;
+  const container = menuDiv;
 
-  while (container.firstChild) { // as long as there is at least one child, remove it
+  // as long as there is at least one child, remove it
+  while (container.firstChild) {
     container.removeChild(container.firstChild);
   }
 }
 
 // main menu code, using html and css
 function showMenu(showResume) {
+  clearLevelButtons();               // remove any old children
+  menuDiv.style.pointerEvents = 'auto';
+  menuDiv.style.display       = 'block';
 
-  clearLevelButtons(); // clear out any old buttons
+  // — Title —
+  const title = document.createElement('h1');
+  title.textContent   = 'ChromaJump';
+  title.className     = 'menu-title';
+  menuDiv.appendChild(title);
 
-  menuDiv.style("pointer-events", "auto");
-
-  // — title —
-  let title = createElement("h1", "ChromaJump");
-  title.parent(menuDiv);
-  title.class("menu-title");
-
+  // — Subtitle & (optional) Resume button —
   if (showResume) {
-    // — subtitle —
-    let subtitle = createElement("p", "Paused");
-    subtitle.parent(menuDiv);
-    subtitle.class("menu-subtitle");
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Paused';
+    subtitle.className   = 'menu-subtitle';
+    menuDiv.appendChild(subtitle);
 
-    let b = createButton(`Resume`);
-    b.parent(menuDiv); 
-    b.class("menu-button");
-    b.mousePressed(() => {
-      hideMenu()
-      gameState = "playing";
-      thudSound.setVolume(0.25);
+    const resumeBtn = document.createElement('button');
+    resumeBtn.textContent = 'Resume';
+    resumeBtn.className   = 'menu-button';
+    resumeBtn.addEventListener('click', () => {
+      hideMenu();
+      gameState = 'playing';
+      thudSound.volume = 0.25;
       thudSound.play();
     });
+    menuDiv.appendChild(resumeBtn);
+
   } else {
-    // — subtitle —
-    let subtitle = createElement("p", "Select a level:");
-    subtitle.parent(menuDiv);
-    subtitle.class("menu-subtitle");
+    const subtitle = document.createElement('p');
+    subtitle.textContent = 'Select a level:';
+    subtitle.className   = 'menu-subtitle';
+    menuDiv.appendChild(subtitle);
   }
 
-  for (let i = 0; i < levelMaps.length; i++) {
-    let b = createButton(`LEVEL ${i + 1}`);
-    b.parent(menuDiv);
-    b.class("menu-button");
-    b.mousePressed(() => {
+  // — Level buttons —
+  levelMaps.forEach((_, i) => {
+    const lvlBtn = document.createElement('button');
+    lvlBtn.textContent = `LEVEL ${i + 1}`;
+    lvlBtn.className   = 'menu-button';
+    lvlBtn.addEventListener('click', () => {
       currentLevelIndex = i;
-      hideMenu()
-      gameState = "playing";
+      hideMenu();
+      gameState = 'playing';
       startTransition(camera.x, camera.y, true);
-      thudSound.setVolume(0.25);
+      thudSound.volume    = 0.25;
       thudSound.play();
-      completeSound.setVolume(0.25);
+      completeSound.volume = 0.25;
       completeSound.play();
     });
-  }
-  menuDiv.show();
+    menuDiv.appendChild(lvlBtn);
+  });
 }
 
 function hideMenu() {
-  menuDiv.hide();
+  menuDiv.style.display       = 'none';
+  menuDiv.style.pointerEvents = 'none';
   clearLevelButtons();
 }
 
