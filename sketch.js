@@ -175,22 +175,19 @@ function setup() {
 
   frameRate(60);
 
-  // Create the menu container
+  // ui HTML elements
   menuDiv = document.createElement('div');
   menuDiv.id = 'menu';
   document.body.appendChild(menuDiv);
 
-  // Create a HUD container inside the menu
-  let uiDiv = document.createElement('div');
+  const uiDiv = document.createElement('div');
   uiDiv.id = 'game-ui';
-  menuDiv.appendChild(uiDiv);
+  document.body.appendChild(uiDiv);
 
-  // Create & append the level display
   levelElem = document.createElement('span');
   levelElem.id = 'level-display';
   uiDiv.appendChild(levelElem);
 
-  // Create & append the lens display
   lensElem = document.createElement('div');
   lensElem.id = 'lens-display';
   uiDiv.appendChild(lensElem);
