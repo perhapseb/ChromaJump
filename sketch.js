@@ -55,12 +55,13 @@ let gameState = "menu"; // "menu" or "playing"
 
 function preload() {
   // main sprites
-  walkAnim = loadImage("Walk.png");
-  idleAnim = loadImage("Idle.png");
-  jumpAnim = loadImage("Jump.png");
-  lensImg = loadImage("Lens.png");
-  jumpDustAnim = loadImage("Dust.png");
-  walkDustAnim = loadImage("WalkDust.png");
+  lensImg = loadImage("Images/Lens.png");
+  // char sprites
+  walkAnim = loadImage("Spritesheets/Walk.png");
+  idleAnim = loadImage("Spritesheets/Idle.png");
+  jumpAnim = loadImage("Spritesheets/Jump.png");
+  jumpDustAnim = loadImage("Spritesheets/Dust.png");
+  walkDustAnim = loadImage("Spritesheets/WalkDust.png");
   // lens items
   redLens = loadImage("Images/RedLens.png");
   greenLens = loadImage("Images/GreenLens.png");
