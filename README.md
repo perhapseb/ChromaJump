@@ -1,7 +1,9 @@
-# ChromaJump
+![ChromaJump Title Thumbnail](chromajump.webp)
 
 **ChromaJump** is a pixel-art platformer made by **@perhapseb** with [p5play](https://p5play.org/) and [q5.js](https://q5js.org/home/).
 Phase platforms in and out with your colour-shifting lenses and traverse through progressively harder levels!
+
+▶️ [Play](https://p5play.org/)
 
 ---
 
@@ -18,5 +20,3 @@ Phase platforms in and out with your colour-shifting lenses and traverse through
 | Move left / right | A / D or ← / → | Left Stick |
 | Jump | W or Space | A / B |
 | Previous / Next Lens | Q / E | LT / RT or X / Y |
-
-![ChromaJump Title Thumbnail](chromajump.webp)
