@@ -398,7 +398,7 @@ function drawMain() {
       player.changeAni("idle");
     }
 
-    if ((kb.pressing("space") || kb.pressing("up") || contro.a || contro.b || contro.up || contro.leftStick.y < -0.5) && isOnTopOfPlatform && player.vel.y >= 0) {
+    if ((kb.pressing("space") || kb.pressing("up") || contro.a || contro.b || contro.up) && isOnTopOfPlatform && player.vel.y >= 0) {
       player.vel.y = -7;
       jumpEffect.x = player.x;
       jumpEffect.y = player.y - 15;
@@ -876,6 +876,13 @@ function createPlatformsFromMap(map) {
     let hintPos = hintPlatforms[i];
 
     textFont('Pixelify Sans');
+
+    // manipulate hints on load if a controller is connected
+    if (contros[0]) {
+      hintText = hintText.replace("A and D", "the left joystick")
+                        .replace("W / SPACE", "A / B")
+                        .replace("Q / E", "LT/RT or X/Y");
+    }
 
     let plat = new platforms.Sprite(hintPos.x, hintPos.y, 0.1, 0.1);
     plat.textSize = 0;
