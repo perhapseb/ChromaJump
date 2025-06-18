@@ -8,7 +8,7 @@
 
 // === Game Credits ===
 // Created by Sebastian C
-// Built with p5.play and q5.js
+// Made with p5play and q5.js
 
 // --- Assets ---
 // Character spritesheet: CraftPix.net
@@ -51,7 +51,8 @@ let lensNames = {
 };
 
 // asset preload and setup
-let gameState = "menu"; // "menu" or "playing"
+let gameState = "menu", // "menu" or "playing"
+  isPaused = false;
 
 function preload() {
   // main sprites
@@ -95,7 +96,7 @@ function setup() {
 
   createCanvas(w, h);
   noSmooth();
-  displayMode("maximize", "pixelated");
+  displayMode(MAXED, PIXELATED);
 
   // player setup
   player = new Sprite(50, height - 28, 28, 28);
@@ -247,6 +248,19 @@ function draw() {
       }
     }
 
+    // start game
+    if (!isPaused && (contro.start || contro.a)) {
+      startLevel(0);
+    }
+
+    if ((kb.released('escape') || contro.released('start') || contro.released('a') || contro.released('b')) && !transitionEffect.active && !lensTransition.active) { // main menu
+      isPaused = false;
+      hideMenu()
+      thudSound.setVolume(0.25);
+      thudSound.play();
+      gameState = "playing";
+    }
+
   } else if (gameState === "playing") {
 
     tintLayer.layer = 5;
@@ -256,6 +270,14 @@ function draw() {
     drawMain();
 
     mouse.visible = false;
+    
+    if ((kb.released('escape') || contro.released('start')) && !transitionEffect.active && !lensTransition.active) { // main menu
+      isPaused = true;
+      showMenu();
+      thudSound.setVolume(0.25);
+      thudSound.play();
+      gameState = "menu";
+    }
   }
   
   drawParallax();
@@ -353,7 +375,7 @@ function drawMain() {
 
   // --- Player Movement & Animation ---
   if (transitionEffect.phase != "grow") {
-    if (kb.pressing("left")) {
+    if (kb.pressing("left") || contro.left || contro.leftStick.x < -0.5) {
       player.vel.x = -3;
       player.scale.x = -1.5;
       if (isOnTopOfPlatform) {
@@ -362,7 +384,7 @@ function drawMain() {
         walkEffect.x = player.x + 5;
         walkEffect.y = player.y;
       }
-    } else if (kb.pressing("right")) {
+    } else if (kb.pressing("right") || contro.right || contro.leftStick.x > 0.5) {
       player.vel.x = 3;
       player.scale.x = 1.5;
       if (isOnTopOfPlatform) {
@@ -376,7 +398,7 @@ function drawMain() {
       player.changeAni("idle");
     }
 
-    if ((kb.pressing("space") || kb.pressing("up")) && isOnTopOfPlatform && player.vel.y >= 0) {
+    if ((kb.pressing("space") || kb.pressing("up") || contro.a || contro.up || contro.leftStick.y > 0.5) && isOnTopOfPlatform && player.vel.y >= 0) {
       player.vel.y = -7;
       jumpEffect.x = player.x;
       jumpEffect.y = player.y - 15;
@@ -403,9 +425,9 @@ function drawMain() {
   }
 
   // --- Lens Switching & Transition Trigger ---
-  if ((kb.pressing("q") || kb.pressing("e")) && !lensTransition.active && unlockedLenses.length > 1) {
+  if ((kb.pressing("q") || kb.pressing("e") || contro.l || contro.lt || contro.r || contro.rt) && !lensTransition.active && unlockedLenses.length > 1) {
 
-    if (kb.pressing("q")) {
+    if (kb.pressing("q") || contro.l || contro.lt) {
       lensTransition.direction = -1;
     } else {
       lensTransition.direction = 1;
@@ -562,19 +584,6 @@ function drawParallax() {
 
 // key press logic
 function keyPressed() {
-  if (keyCode === ESCAPE && !transitionEffect.active && !lensTransition.active) { // main menu
-    if (gameState === "playing") { // toggle main menu
-      showMenu(true);
-      thudSound.setVolume(0.25);
-      thudSound.play();
-      gameState = "menu";
-    } else { // exit main menu
-      hideMenu()
-      thudSound.setVolume(0.25);
-      thudSound.play();
-      gameState = "playing";
-    }
-  }
   if (keyCode === TAB) { // full screen mode
     let fs = fullscreen();
     fullscreen(!fs);
@@ -975,7 +984,7 @@ function clearLevelButtons() {
 }
 
 // main menu code, using html and css
-function showMenu(showResume) {
+function showMenu() {
   clearLevelButtons();               // remove any old children
   menuDiv.style.pointerEvents = 'auto';
   menuDiv.style.display       = 'block';
@@ -987,7 +996,7 @@ function showMenu(showResume) {
   menuDiv.appendChild(title);
 
   // — Subtitle & (optional) Resume button —
-  if (showResume) {
+  if (isPaused) {
     const subtitle = document.createElement('p');
     subtitle.textContent = 'Paused';
     subtitle.className   = 'menu-subtitle';
@@ -1017,17 +1026,21 @@ function showMenu(showResume) {
     lvlBtn.textContent = `LEVEL ${i + 1}`;
     lvlBtn.className   = 'menu-button';
     lvlBtn.addEventListener('click', () => {
-      currentLevelIndex = i;
-      hideMenu();
-      gameState = 'playing';
-      startTransition(camera.x, camera.y, true);
-      thudSound.volume    = 0.25;
-      thudSound.play();
-      completeSound.volume = 0.25;
-      completeSound.play();
+      startLevel(i);
     });
     menuDiv.appendChild(lvlBtn);
   });
+}
+
+function startLevel(index) {
+  currentLevelIndex = index;
+  hideMenu();
+  gameState = 'playing';
+  startTransition(camera.x, camera.y, true);
+  thudSound.volume    = 0.25;
+  thudSound.play();
+  completeSound.volume = 0.25;
+  completeSound.play();
 }
 
 function hideMenu() {
