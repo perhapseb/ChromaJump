@@ -249,11 +249,11 @@ function draw() {
     }
 
     // start game
-    if (!isPaused && (contro.start || contro.a)) {
+    if (!isPaused && (contro.start || contro.select || contro.a || contro.b)) {
       startLevel(0);
     }
 
-    if ((kb.released('escape') || contro.released('start') || contro.released('a') || contro.released('b')) && !transitionEffect.active && !lensTransition.active) { // main menu
+    if ((kb.released('escape') || contro.released('start') || contro.released('select') || contro.released('a') || contro.released('b')) && !transitionEffect.active && !lensTransition.active) { // main menu
       isPaused = false;
       hideMenu()
       thudSound.setVolume(0.25);
@@ -271,7 +271,7 @@ function draw() {
 
     mouse.visible = false;
     
-    if ((kb.released('escape') || contro.released('start')) && !transitionEffect.active && !lensTransition.active) { // main menu
+    if ((kb.released('escape') || contro.released('start') || contro.released('select')) && !transitionEffect.active && !lensTransition.active) { // main menu
       isPaused = true;
       showMenu();
       thudSound.setVolume(0.25);
@@ -398,7 +398,7 @@ function drawMain() {
       player.changeAni("idle");
     }
 
-    if ((kb.pressing("space") || kb.pressing("up") || contro.a || contro.up || contro.leftStick.y > 0.5) && isOnTopOfPlatform && player.vel.y >= 0) {
+    if ((kb.pressing("space") || kb.pressing("up") || contro.a || contro.b || contro.up || contro.leftStick.y < -0.5) && isOnTopOfPlatform && player.vel.y >= 0) {
       player.vel.y = -7;
       jumpEffect.x = player.x;
       jumpEffect.y = player.y - 15;
@@ -425,9 +425,9 @@ function drawMain() {
   }
 
   // --- Lens Switching & Transition Trigger ---
-  if ((kb.pressing("q") || kb.pressing("e") || contro.l || contro.lt || contro.r || contro.rt) && !lensTransition.active && unlockedLenses.length > 1) {
+  if ((kb.pressing("q") || kb.pressing("e") || contro.l || contro.lt || contro.x || contro.r || contro.rt || contro.y) && !lensTransition.active && unlockedLenses.length > 1) {
 
-    if (kb.pressing("q") || contro.l || contro.lt) {
+    if (kb.pressing("q") || contro.l || contro.lt || contro.x) {
       lensTransition.direction = -1;
     } else {
       lensTransition.direction = 1;
