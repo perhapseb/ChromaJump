@@ -7,7 +7,7 @@
 //   ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝  ╚═╝ ╚════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝
 
 // === Game Credits ===
-// Created by Sebastian C
+// Created by perhapseb
 // Made with p5play and q5.js
 
 // --- Assets ---
@@ -633,7 +633,7 @@ let hints = [
   ],
   [
     "ChromaJump",
-    "by Sebastian C",
+    "by perhapseb",
     "Credits:",
     "Original Character Spritesheet\nCraftPix.net",
     "Lens Spritesheet\nLa Red Games",
