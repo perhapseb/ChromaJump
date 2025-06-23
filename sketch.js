@@ -190,6 +190,7 @@ function setup() {
 
   levelElem = document.createElement('span');
   levelElem.id = 'level-display';
+  levelElem.textContent = "Game controller not detected";
   uiDiv.appendChild(levelElem);
 
   lensElem = document.createElement('div');
@@ -251,6 +252,10 @@ function draw() {
       }
     }
 
+    if (contros[0]?.connected) {
+      levelElem.textContent = "Game controller detected!";
+    }
+
     // start game
     if (!isPaused && (contro.start || contro.select || contro.a || contro.b)) {
       startLevel(0);
@@ -274,7 +279,7 @@ function draw() {
     mouse.visible = false;
 
     // if controller is connected
-    if (currentLevelIndex == 0 && contros[0]?.connected) {
+    if (currentLevelIndex == 0 && hintPlatforms.length && contros[0]?.connected) {
       hintPlatforms[0].text = "use the left joystick or d-pad to move";
       hintPlatforms[1].text = "press A or B to jump";
       hintPlatforms[2].text = "LT/RT or X/Y to cycle lenses";
@@ -939,9 +944,6 @@ function createPlatform(x, y, w, h, colorTag) {
 
 // load level given index
 function loadLevel(index) {
-  // update the level number
-  levelElem.textContent = `LEVEL ${currentLevelIndex + 1}`;
-
   hintIndex = 0;
   let mapToLoad
   if (index == 99) {
@@ -1041,6 +1043,8 @@ function showMenu() {
 
 function startLevel(index) {
   currentLevelIndex = index;
+  // update the level number
+  levelElem.textContent = `LEVEL ${currentLevelIndex + 1}`;
   hideMenu();
   gameState = 'playing';
   startTransition(camera.x, camera.y, true);
