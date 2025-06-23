@@ -9,6 +9,7 @@
 // === Game Credits ===
 // Created by perhapseb
 // Made with p5play and q5.js
+//   https://p5play.org
 
 // --- Assets ---
 // Character spritesheet: CraftPix.net
@@ -24,6 +25,7 @@
 
 // sprites
 let player, groundSensor, ground, platforms, jumpEffect, walkEffect;
+let hintPlatforms = [];
 let redLens, blueLens, greenLens;
 
 // effects
@@ -95,8 +97,9 @@ function setup() {
   const h = min(windowHeight, MAX_H);
 
   createCanvas(w, h);
-  noSmooth();
   displayMode(MAXED, PIXELATED);
+
+  textFont("Pixelify Sans");
 
   // player setup
   player = new Sprite(50, height - 28, 28, 28);
@@ -266,10 +269,16 @@ function draw() {
     tintLayer.layer = 5;
     tintLayer.opacity = 0.25;
 
-    updateUI();
     drawMain();
 
     mouse.visible = false;
+
+    // if controller is connected
+    if (currentLevelIndex == 0 && contros[0]?.connected) {
+      hintPlatforms[0].text = "use the left joystick or d-pad to move";
+      hintPlatforms[1].text = "press A or B to jump";
+      hintPlatforms[2].text = "LT/RT or X/Y to cycle lenses";
+    }
     
     if ((kb.released('escape') || contro.released('start') || contro.released('select')) && !transitionEffect.active && !lensTransition.active) { // main menu
       isPaused = true;
@@ -297,22 +306,22 @@ function drawMain() {
   // --- MAIN PLATFORM LOOP ---
   for (let plat of platforms) {
     plat.friction = 0;
-    if (groundSensor.overlapping(plat) && plat.collider === "static") {
+    if (groundSensor.overlapping(plat) && plat.physics === "static") {
       isOnTopOfPlatform = true;
     }
     if (plat.colorTag === "neutral") {
       // next is platform visibility/collisions
-      plat.collider = "static";
+      plat.physics = "static";
       plat.opacity = 1;
     } else if (plat.colorTag === "win") {
-      plat.collider = "static";
+      plat.physics = "static";
       plat.opacity = 1;
     } else if (plat.colorTag === currentLens) {
-      plat.collider = "static";
+      plat.physics = "static";
       plat.opacity = lerp(plat.opacity, 1, 0.025);
     } else if (plat.colorTag === "text") {
       // text hint logic
-      plat.collider = "none";
+      plat.physics = "none";
       let distToPlayer = dist(player.x, player.y, plat.x, plat.y);
       let targetOpacity = distToPlayer > 350 ? 0 : 1;
       let targetSize = distToPlayer > 350 ? 20 : 25;
@@ -341,7 +350,7 @@ function drawMain() {
       }
     } else {
       // For non-matching platforms, disable collision.
-      plat.collider = "none";
+      plat.physics = "none";
       plat.opacity = lerp(plat.opacity, 0, 0.05);
     }
 
@@ -493,6 +502,12 @@ function drawMain() {
         // Update the lens index depending on the direction of transition.
         lensIndex = (lensIndex + lensTransition.direction + unlockedLenses.length) % unlockedLenses.length;
         currentLens = unlockedLenses[lensIndex];
+
+        // update the lens icon + name (needs HTML, so use innerHTML)
+        let name = lensNames[currentLens][0];
+        lensElem.innerHTML = 
+          `<span class="lens-circle" style="background: ${currentLens};"></span>` +
+          name;
       }
     } else if (lensTransition.phase === "moveIn") {
       // Move the sprite back towards the center (zero offset).
@@ -795,7 +810,7 @@ function createPlatformsFromMap(map) {
           pickup.colorTag = `pickup-${colorName}`;
           pickup.color = color(colorName);
           pickup.opacity = 1;
-          pickup.collider = "none";
+          pickup.physics = "none";
           pickup.layer = 18;
           //pickup.tint = colorName
           pickup.addAni("red", redLens, {
@@ -833,7 +848,7 @@ function createPlatformsFromMap(map) {
       if (tile === "C") {
         let pickup = new platforms.Sprite(x, y, 150, 150);
         pickup.colorTag = "checkpoint";
-        pickup.collider = "none";
+        pickup.physics = "none";
         pickup.opacity = 0;
         continue; // don't fall through to createPlatform(...)
       }
@@ -853,7 +868,7 @@ function createPlatformsFromMap(map) {
   }
 
   // First, collect all 'T' hint locations
-  let hintPlatforms = [];
+  let hintPositions = [];
 
   for (let row = 0; row < map.length; row++) {
     for (let col = 0; col < map[row].length; col++) {
@@ -862,27 +877,18 @@ function createPlatformsFromMap(map) {
         let x = col * tileSize + tileSize / 2;
         let y =
           row * tileSize + tileSize / 2 + (height - map.length * tileSize - 50);
-        hintPlatforms.push({ x, y });
+        hintPositions.push({ x, y });
       }
     }
   }
 
   // Sort hint blocks by x so leftmost comes first
-  hintPlatforms.sort((a, b) => a.x - b.x);
+  hintPositions.sort((a, b) => a.x - b.x);
 
   // Create each hint block and assign text from the global hints list
-  for (let i = 0; i < hintPlatforms.length; i++) {
+  for (let i = 0; i < hintPositions.length; i++) {
     let hintText = hints[currentLevelIndex][hintIndex] ?? "";
-    let hintPos = hintPlatforms[i];
-
-    textFont('Pixelify Sans');
-
-    // manipulate hints on load if a controller is connected
-    if (contros[0]) {
-      hintText = hintText.replace("A and D", "the left joystick")
-                        .replace("W / SPACE", "A / B")
-                        .replace("Q / E", "LT/RT or X/Y");
-    }
+    let hintPos = hintPositions[i];
 
     let plat = new platforms.Sprite(hintPos.x, hintPos.y, 0.1, 0.1);
     plat.textSize = 0;
@@ -892,8 +898,10 @@ function createPlatformsFromMap(map) {
     plat.textStroke = 0;
     plat.color = "transparent"; // no background
     plat.colorTag = "text";
-    plat.collider = "none";
+    plat.physics = "none";
     plat.layer = 5;
+
+    hintPlatforms.push(plat);
 
     hintIndex++;
   }
@@ -911,7 +919,7 @@ function createPlatform(x, y, w, h, colorTag) {
   if (colorTag === "red") {
     plat.color = color(colorTag);
   } else if (colorTag === "green") {
-    plat.color = color(colorTag);
+    plat.color = color("lime");
   } else if (colorTag === "blue") {
     plat.color = color(colorTag);
   } else if (colorTag === "win") {
@@ -922,7 +930,7 @@ function createPlatform(x, y, w, h, colorTag) {
     plat.color = color("black");
   }
 
-  plat.collider = "static";
+  plat.physics = "static";
   plat.friction = 0;
   plat.immovable = true;
 
@@ -931,6 +939,9 @@ function createPlatform(x, y, w, h, colorTag) {
 
 // load level given index
 function loadLevel(index) {
+  // update the level number
+  levelElem.textContent = `LEVEL ${currentLevelIndex + 1}`;
+
   hintIndex = 0;
   let mapToLoad
   if (index == 99) {
@@ -969,17 +980,6 @@ function resetLevel() {
 // --------------------------------
 // UI, ANIMATION, AND EFFECTS
 // --------------------------------
-
-function updateUI() {
-  // update the level number
-  levelElem.textContent = `LEVEL ${currentLevelIndex + 1}`;
-
-  // update the lens icon + name (needs HTML, so use innerHTML)
-  let name = lensNames[currentLens][0];
-  lensElem.innerHTML = 
-    `<span class="lens-circle" style="background: ${currentLens};"></span>` +
-    name;
-}
 
 function clearLevelButtons() {
   const container = menuDiv;
@@ -1076,7 +1076,7 @@ let transitionEffect = {
   levelLoad: false
 };
 
-  // Lens transition effect for lens cycling.
+// Lens transition effect for lens cycling.
 let lensTransition = {
   active: false,
   phase: "", // "zoomIn", "moveRight", "moveLeft", "zoomOut"
